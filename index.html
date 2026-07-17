@@ -370,22 +370,25 @@ function drawMetro(handAngle){
       if(ha>=ba&&ha<nextBa)active=true
     }
     // Dot shadow
-    ctx.beginPath();ctx.arc(x+1,y+1,6*scale,0,Math.PI*2)
-    ctx.fillStyle='rgba(0,0,0,.06)';ctx.fill()
+    ctx.beginPath();ctx.arc(x+1,y+1,7*scale,0,Math.PI*2)
+    ctx.fillStyle='rgba(0,0,0,.08)';ctx.fill()
     // Dot
-    ctx.beginPath();ctx.arc(x,y,6*scale,0,Math.PI*2)
-    if(active){ctx.fillStyle=isAccent?'var(--text)':'var(--accent)';ctx.fill()}
-    else{ctx.fillStyle=metroPlaying?'var(--border)':'#f0eeea';ctx.fill()}
+    const dotSize=active?7*scale:6*scale
+    ctx.beginPath();ctx.arc(x,y,dotSize,0,Math.PI*2)
+    if(active){ctx.fillStyle=isAccent?'#000':'var(--accent)';ctx.fill()}
+    else{ctx.fillStyle='var(--text2)';ctx.fill()}
+    // Inactive dot border
+    if(!active){ctx.strokeStyle='rgba(0,0,0,.12)';ctx.lineWidth=1*scale;ctx.stroke()}
     // Active glow
     if(active){
-      ctx.beginPath();ctx.arc(x,y,10*scale,0,Math.PI*2)
-      ctx.fillStyle=isAccent?'rgba(26,26,26,.12)':'rgba(212,79,79,.12)'
+      ctx.beginPath();ctx.arc(x,y,11*scale,0,Math.PI*2)
+      ctx.fillStyle=isAccent?'rgba(0,0,0,.15)':'rgba(212,79,79,.15)'
       ctx.fill()
     }
     // Accent ring
     if(isAccent&&!active){
-      ctx.beginPath();ctx.arc(x,y,9*scale,0,Math.PI*2)
-      ctx.strokeStyle='var(--border)';ctx.lineWidth=1*scale;ctx.stroke()
+      ctx.beginPath();ctx.arc(x,y,9.5*scale,0,Math.PI*2)
+      ctx.strokeStyle='var(--text2)';ctx.lineWidth=1.2*scale;ctx.stroke()
     }
   }
 
@@ -407,14 +410,14 @@ function drawMetro(handAngle){
     ctx.fillStyle='var(--text)';ctx.fill()
   }
 
-  // BPM
-  ctx.fillStyle='var(--text)'
-  ctx.font=600+' '+(44*scale)+'px system-ui,sans-serif'
+  // BPM - darker, bolder
+  ctx.fillStyle='#000'
+  ctx.font=700+' '+(48*scale)+'px system-ui,sans-serif'
   ctx.textAlign='center';ctx.textBaseline='middle'
   ctx.fillText(metroBpm.toString(),cx,cy-6*scale)
   ctx.fillStyle='var(--text2)'
-  ctx.font=(10*scale)+'px system-ui,sans-serif'
-  ctx.fillText('BPM',cx,cy+(26*scale))
+  ctx.font='bold '+(11*scale)+'px system-ui,sans-serif'
+  ctx.fillText('BPM',cx,cy+(28*scale))
 }
 
 // Rotary control
@@ -476,7 +479,7 @@ function metroScheduler(){
   while(metroNextTime<metroCtx.currentTime+la){
     const isAccent=metroBeatIndex===0
     metroClick(metroNextTime,isAccent?1:0.7,isAccent?1500:800)
-    if(metroSubdiv>0){const n=metroSubdiv;for(let s=1;s<n;s++){const t=metroNextTime+s*bl/n;if(t<metroCtx.currentTime+la+0.05)metroClick(t,0.3,800)}}
+    if(metroSubdiv>0){const n=metroSubdiv;for(let s=1;s<n;s++)metroClick(metroNextTime+s*bl/n,0.3,800)}
     metroBeatIndex++;metroNextTime+=bl
     if(metroBeatIndex>=metroBeatsPerBar)metroBeatIndex=0
   }
