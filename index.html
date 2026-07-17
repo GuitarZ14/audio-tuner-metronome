@@ -22,14 +22,12 @@
 html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--font);-webkit-tap-highlight-color:transparent}
 body{display:flex;flex-direction:column;max-width:480px;margin:0 auto;touch-action:pan-y}
 
-/* Header */
 .header{text-align:center;padding:16px 16px 0;flex-shrink:0}
 .header h1{font-size:17px;font-weight:500;letter-spacing:4px;color:var(--text2);margin-bottom:12px}
 .tab-bar{display:flex;gap:0;background:var(--surface);border-radius:var(--radius);padding:3px;border:1px solid var(--border)}
 .tab-btn{flex:1;padding:9px;text-align:center;border:none;background:transparent;color:var(--text2);font-size:14px;font-weight:400;border-radius:7px;cursor:pointer;transition:.2s}
 .tab-btn.active{background:var(--text);color:#fff;font-weight:500}
 
-/* Content */
 .content{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:16px}
 .tab-panel{display:none;flex-direction:column;gap:16px}
 .tab-panel.active{display:flex}
@@ -41,37 +39,28 @@ body{display:flex;flex-direction:column;max-width:480px;margin:0 auto;touch-acti
 .tuner-octave{font-size:22px;font-weight:300;color:var(--text2)}
 .tuner-freq{font-size:13px;color:var(--text2);margin-bottom:20px}
 .tuner-msg{font-size:13px;color:var(--text2);margin-bottom:12px;min-height:18px}
-
 .gauge-wrap{position:relative;width:200px;height:100px;margin:0 auto 12px;overflow:hidden}
 .gauge-bg{position:absolute;inset:0;border-radius:100px 100px 0 0;background:linear-gradient(to right,var(--yellow),var(--green) 30%,var(--green) 70%,var(--yellow))}
 .gauge-track{position:absolute;inset:3px;border-radius:97px 97px 0 0;background:var(--surface)}
 .gauge-needle{position:absolute;bottom:0;left:50%;width:2px;height:85px;background:var(--text);transform-origin:bottom center;transform:translateX(-50%) rotate(0deg);transition:transform .08s ease;border-radius:1px;z-index:2}
 .gauge-center{position:absolute;bottom:2px;left:50%;transform:translateX(-50%);font-size:10px;color:var(--text2);z-index:1;letter-spacing:1px}
 .cents-label{margin-top:4px;font-size:14px;font-weight:400;min-height:20px}
-.cents-label.flat{color:var(--yellow)}
-.cents-label.sharp{color:var(--yellow)}
-.cents-label.in-tune{color:var(--green)}
-
+.cents-label.flat{color:var(--yellow)}.cents-label.sharp{color:var(--yellow)}.cents-label.in-tune{color:var(--green)}
 .strings-row{display:flex;gap:6px;justify-content:center;flex-wrap:wrap}
 .string-dot{width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:500;background:#f0eeea;color:var(--text2);transition:.2s;border:1px solid var(--border)}
 .string-dot.active{background:var(--accent);color:#fff;border-color:var(--accent);transform:scale(1.1)}
 .string-dot.in-tune{background:var(--green);color:#fff;border-color:var(--green);transform:scale(1.05)}
-
 .tuner-selects{display:flex;gap:10px}
 .tuner-selects select{flex:1;padding:10px 12px;border:1px solid var(--border);border-radius:7px;background:var(--surface);color:var(--text);font-size:13px;cursor:pointer;-webkit-appearance:none;appearance:none;background-image:url("data:image/svg+xml,%3Csvg width='10' height='6' fill='%23999793'%3E%3Cpath d='M0 0l5 6 5-6z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center}
-
 .tuner-mic-status{font-size:12px;color:var(--text2);text-align:center;padding:6px;display:flex;align-items:center;justify-content:center;gap:6px}
 .mic-dot{width:8px;height:8px;border-radius:50%;background:var(--text2)}
 .mic-dot.active{background:var(--green);animation:pulse 1.5s ease-in-out infinite}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
 
 /* ===== Metronome ===== */
-.metro-canvas-wrap{display:flex;justify-content:center;align-items:center;padding:4px 0;position:relative;touch-action:none}
-#metroCanvas{display:block;width:100%;max-width:320px;height:auto;aspect-ratio:1;cursor:pointer;touch-action:none}
-.touch-hint{position:absolute;bottom:4px;left:50%;transform:translateX(-50%);font-size:10px;color:var(--text2);opacity:0;transition:opacity .5s;pointer-events:none}
-.touch-hint.show{opacity:1}
+.metro-canvas-wrap{display:flex;justify-content:center;align-items:center;padding:0;position:relative;touch-action:none}
+#metroCanvas{display:block;width:100%;max-width:340px;height:auto;aspect-ratio:1;cursor:pointer;touch-action:none;border-radius:50%;box-shadow:0 4px 20px rgba(0,0,0,.06)}
 
-/* Button groups */
 .btn-group{display:flex;gap:5px;flex-wrap:wrap}
 .btn-group .btn{flex:1;padding:9px 6px;border:1px solid var(--border);border-radius:6px;background:var(--surface);color:var(--text2);font-size:13px;cursor:pointer;transition:.15s;text-align:center;min-width:0}
 .btn-group .btn:active{transform:scale(.95)}
@@ -139,7 +128,6 @@ body{display:flex;flex-direction:column;max-width:480px;margin:0 auto;touch-acti
   <div class="tab-panel" id="panel-metronome">
     <div class="metro-canvas-wrap">
       <canvas id="metroCanvas" width="640" height="640"></canvas>
-      <div class="touch-hint" id="touchHint">↻ 转动设置速度</div>
     </div>
 
     <div class="btn-group" id="timeSigGroup">
@@ -206,7 +194,6 @@ populateTunings()
 // ====== Tuner ======
 let tunerCtx=null,tunerAnalyser=null,tunerStream=null,tunerActive=false,tunerRaf=null
 let smoothedLogFreq=null,tunerInitAttempted=false
-
 function detectPitch(buffer,sr){
   const N=buffer.length,minLag=Math.floor(sr/1500),maxLag=Math.floor(sr/55)
   let sumSq=0;for(let i=0;i<N;i++)sumSq+=buffer[i]*buffer[i]
@@ -220,20 +207,14 @@ function detectPitch(buffer,sr){
   const a=acf(bestLag-1),b=bestVal,c=acf(bestLag+1),shift=(a-c)/(2*(a-2*b+c))
   return sr/(bestLag+shift)
 }
-
 async function initTuner(){
-  if(tunerInitAttempted)return
-  tunerInitAttempted=true
+  if(tunerInitAttempted)return;tunerInitAttempted=true
   setMicStatus('请求麦克风...','')
   try{
     tunerStream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:false,noiseSuppression:false,autoGainControl:false}})
-    tunerCtx=new AudioContext()
-    const src=tunerCtx.createMediaStreamSource(tunerStream)
-    tunerAnalyser=tunerCtx.createAnalyser()
-    tunerAnalyser.fftSize=4096;src.connect(tunerAnalyser)
-    tunerActive=true;smoothedLogFreq=null
-    setMicStatus('调音中','active')
-    $('tunerMsg').textContent='弹奏一根弦'
+    tunerCtx=new AudioContext();const src=tunerCtx.createMediaStreamSource(tunerStream)
+    tunerAnalyser=tunerCtx.createAnalyser();tunerAnalyser.fftSize=4096;src.connect(tunerAnalyser)
+    tunerActive=true;smoothedLogFreq=null;setMicStatus('调音中','active');$('tunerMsg').textContent='弹奏一根弦'
     tunerLoop()
   }catch(e){setMicStatus('麦克风被拒绝','');$('tunerMsg').textContent='请在浏览器设置中允许麦克风权限后刷新页面';tunerInitAttempted=false}
 }
@@ -278,7 +259,6 @@ function tunerLoop(){
   }
   tunerRaf=requestAnimationFrame(tunerLoop)
 }
-
 initTuner()
 
 // ====== Metronome ======
@@ -287,117 +267,167 @@ let metroCtx=null,metroPlaying=false,metroNextTime=0,metroStartTime=0
 let metroTimer=null,metroBeatIndex=0,metroBpm=120,metroBeatsPerBar=4
 let metroSubdiv=0,metroAnimRaf=null
 let tapTimes=[],tapTimer=null
-let currentBeatPos=0,currentBeatFrac=0
 
-function getDPI(){const r=Math.min(window.devicePixelRatio||1,2);return r}
 function resizeCanvas(){
-  const wrap=canvas.parentElement,size=Math.min(wrap.clientWidth||320,320)*getDPI()
-  canvas.width=size;canvas.height=size;canvas.style.width=Math.round(size/getDPI())+'px';canvas.style.height=Math.round(size/getDPI())+'px'
+  const wrap=canvas.parentElement,s=Math.min(wrap.clientWidth||320,340)
+  const dpr=Math.min(window.devicePixelRatio||1,2)
+  canvas.width=s*dpr;canvas.height=s*dpr
+  canvas.style.width=s+'px';canvas.style.height=s+'px'
   drawMetro()
 }
 
 function setBpm(v){
-  metroBpm=Math.round(Math.max(30,Math.min(280,v)))
-  drawMetro()
+  const n=Math.round(Math.max(30,Math.min(280,v)))
+  if(n!==metroBpm){metroBpm=n;rotaryClick();drawMetro()}
 }
 function setTimeSig(sig){
-  const beats={2:2,3:3,4:4,6:6}[parseInt(sig)]||4
+  const beats=parseInt(sig);if(isNaN(beats))return
   metroBeatsPerBar=beats
-  document.querySelectorAll('#timeSigGroup .btn').forEach(b=>{b.classList.toggle('on',b.dataset.sig===sig)})
+  document.querySelectorAll('#timeSigGroup .btn').forEach(b=>b.classList.toggle('on',b.dataset.sig===sig))
   if(metroPlaying){metroStop();metroStart()}
   drawMetro()
 }
 function setSubdiv(v){
   metroSubdiv=parseInt(v)
-  document.querySelectorAll('#subdivGroup .btn').forEach(b=>{b.classList.toggle('on',b.dataset.sub===v)})
+  document.querySelectorAll('#subdivGroup .btn').forEach(b=>b.classList.toggle('on',b.dataset.sub===v))
   if(metroPlaying){metroStop();metroStart()}
+}
+
+// Rotary click sound
+function rotaryClick(){
+  try{
+    if(!metroCtx)metroCtx=new AudioContext()
+    if(metroCtx.state==='suspended')metroCtx.resume()
+    const t=metroCtx.currentTime
+    const osc=metroCtx.createOscillator(),gain=metroCtx.createGain()
+    osc.type='sine';osc.frequency.setValueAtTime(2500,t)
+    gain.gain.setValueAtTime(0.06,t);gain.gain.exponentialRampToValueAtTime(0.001,t+0.006)
+    osc.connect(gain);gain.connect(metroCtx.destination);osc.start(t);osc.stop(t+0.006)
+  }catch(e){}
 }
 
 // Canvas drawing
 function drawMetro(handAngle){
-  const size=canvas.width,cx=size/2,cy=size/2
-  const dpr=getDPI(),scale=size/640
-  const R=size*0.38,dotR=4*scale,handR=size*0.32
+  const size=canvas.width,cx=size/2,cy=size/2,scale=size/640
+
   ctx.clearRect(0,0,size,size)
 
-  // Outer ring
-  ctx.beginPath();ctx.arc(cx,cy,R+12*scale,0,Math.PI*2);ctx.strokeStyle='var(--border)';ctx.lineWidth=1.5*scale;ctx.stroke()
+  // Outer wheel ring - dark, solid, mechanical look
+  const rOuter=size*0.49,rInner=size*0.37
+  const grad=ctx.createRadialGradient(cx-3*scale,cy-3*scale,size*0.05,cx,cy,rOuter)
+  grad.addColorStop(0,'#4a4a4a');grad.addColorStop(.5,'#3a3a3a');grad.addColorStop(1,'#2a2a2a')
+  ctx.beginPath();ctx.arc(cx,cy,rOuter,0,Math.PI*2);ctx.arc(cx,cy,rInner,0,Math.PI*2,true)
+  ctx.fillStyle=grad;ctx.fill()
+
+  // Outer bezel highlight
+  ctx.beginPath();ctx.arc(cx,cy,rOuter-1*scale,0,Math.PI*2)
+  ctx.strokeStyle='rgba(255,255,255,.08)';ctx.lineWidth=1*scale;ctx.stroke()
+
+  // Tick marks around the wheel
+  const numTicks=48
+  for(let i=0;i<numTicks;i++){
+    const ang=i/numTicks*Math.PI*2
+    const isMain=i%4===0
+    const len=isMain?14*scale:8*scale
+    const w=isMain?2*scale:1*scale
+    const r1=rOuter-3*scale,r2=rOuter-3*scale-len
+    ctx.beginPath()
+    ctx.moveTo(cx+r1*Math.cos(ang),cy+r1*Math.sin(ang))
+    ctx.lineTo(cx+r2*Math.cos(ang),cy+r2*Math.sin(ang))
+    ctx.strokeStyle=isMain?'rgba(255,255,255,.7)':'rgba(255,255,255,.3)'
+    ctx.lineWidth=w;ctx.stroke()
+  }
+
+  // Inner ring (light)
+  const innerR=rInner-4*scale
+  ctx.beginPath();ctx.arc(cx,cy,innerR,0,Math.PI*2)
+  const ig=ctx.createRadialGradient(cx,cy,0,cx,cy,innerR)
+  ig.addColorStop(0,'#fafaf8');ig.addColorStop(1,'#f0eee8')
+  ctx.fillStyle=ig;ctx.fill()
+  ctx.strokeStyle='var(--border)';ctx.lineWidth=1*scale;ctx.stroke()
+
+  // Beat area
+  const beatR=innerR*0.82
+
+  // Radial guide lines
+  for(let i=0;i<metroBeatsPerBar;i++){
+    const ang=i/metroBeatsPerBar*Math.PI*2-Math.PI/2
+    ctx.beginPath();ctx.moveTo(cx+8*scale*Math.cos(ang),cy+8*scale*Math.sin(ang))
+    ctx.lineTo(cx+beatR*Math.cos(ang),cy+beatR*Math.sin(ang))
+    ctx.strokeStyle='rgba(0,0,0,.04)';ctx.lineWidth=1*scale;ctx.stroke()
+  }
 
   // Beat dots
   for(let i=0;i<metroBeatsPerBar;i++){
     const ang=i/metroBeatsPerBar*Math.PI*2-Math.PI/2
-    const x=cx+R*Math.cos(ang),y=cy+R*Math.sin(ang)
-    const isActive=handAngle!==undefined&&((handAngle+Math.PI/2+Math.PI*2)%(Math.PI*2))>=(i/metroBeatsPerBar*Math.PI*2-0.1)&&
-      ((handAngle+Math.PI/2+Math.PI*2)%(Math.PI*2))<(i/metroBeatsPerBar*Math.PI*2+0.1)
-    const isPast=handAngle!==undefined&&((handAngle+Math.PI/2+Math.PI*2)%(Math.PI*2))>(i/metroBeatsPerBar*Math.PI*2-0.3)
+    const x=cx+beatR*Math.cos(ang),y=cy+beatR*Math.sin(ang)
     const isAccent=i===0
-
-    // Dot fill
-    ctx.beginPath();ctx.arc(x,y,dotR*2,0,Math.PI*2)
-    if(isActive&&metroPlaying){ctx.fillStyle=isAccent?'#1a1a1a':'var(--accent)';ctx.fill()}
-    else if(isPast&&metroPlaying){ctx.fillStyle='var(--border)';ctx.fill()}
-    else{ctx.fillStyle='var(--border)';ctx.fill()}
-
+    let active=false
+    if(handAngle!==undefined&&metroPlaying){
+      const ha=(handAngle+Math.PI/2+Math.PI*4)%(Math.PI*2)
+      const ba=(i/metroBeatsPerBar*Math.PI*2+Math.PI*4)%(Math.PI*2)
+      const nextBa=((i+1)/metroBeatsPerBar*Math.PI*2+Math.PI*4)%(Math.PI*2)
+      if(ha>=ba&&ha<nextBa)active=true
+    }
+    // Dot shadow
+    ctx.beginPath();ctx.arc(x+1,y+1,6*scale,0,Math.PI*2)
+    ctx.fillStyle='rgba(0,0,0,.06)';ctx.fill()
+    // Dot
+    ctx.beginPath();ctx.arc(x,y,6*scale,0,Math.PI*2)
+    if(active){ctx.fillStyle=isAccent?'var(--text)':'var(--accent)';ctx.fill()}
+    else{ctx.fillStyle=metroPlaying?'var(--border)':'#f0eeea';ctx.fill()}
+    // Active glow
+    if(active){
+      ctx.beginPath();ctx.arc(x,y,10*scale,0,Math.PI*2)
+      ctx.fillStyle=isAccent?'rgba(26,26,26,.12)':'rgba(212,79,79,.12)'
+      ctx.fill()
+    }
     // Accent ring
-    if(isAccent){ctx.beginPath();ctx.arc(x,y,dotR*2.8,0,Math.PI*2);ctx.strokeStyle='var(--border)';ctx.lineWidth=1*scale;ctx.stroke()}
-  }
-
-  // Radial lines (subtle)
-  for(let i=0;i<metroBeatsPerBar;i++){
-    const ang=i/metroBeatsPerBar*Math.PI*2-Math.PI/2
-    const x1=cx+12*scale*Math.cos(ang),y1=cy+12*scale*Math.sin(ang)
-    const x2=cx+R*Math.cos(ang),y2=cy+R*Math.sin(ang)
-    ctx.beginPath();ctx.moveTo(x1,y1);ctx.lineTo(x2,y2)
-    ctx.strokeStyle='rgba(0,0,0,.04)';ctx.lineWidth=1*scale;ctx.stroke()
+    if(isAccent&&!active){
+      ctx.beginPath();ctx.arc(x,y,9*scale,0,Math.PI*2)
+      ctx.strokeStyle='var(--border)';ctx.lineWidth=1*scale;ctx.stroke()
+    }
   }
 
   // Center dot
-  ctx.beginPath();ctx.arc(cx,cy,3*scale,0,Math.PI*2);ctx.fillStyle='var(--text)';ctx.fill()
+  ctx.beginPath();ctx.arc(cx,cy,3.5*scale,0,Math.PI*2)
+  ctx.fillStyle='var(--text)';ctx.fill()
 
   // Hand
   if(handAngle!==undefined){
-    const tipX=cx+handR*Math.cos(handAngle),tipY=cy+handR*Math.sin(handAngle)
-    // Shadow/glow
+    const tipX=cx+(innerR*0.78)*Math.cos(handAngle),tipY=cy+(innerR*0.78)*Math.sin(handAngle)
+    // Hand glow
     ctx.beginPath();ctx.moveTo(cx,cy);ctx.lineTo(tipX,tipY)
-    ctx.strokeStyle='rgba(0,0,0,.06)';ctx.lineWidth=6*scale;ctx.lineCap='round';ctx.stroke()
-    // Main hand
+    ctx.strokeStyle='rgba(0,0,0,.06)';ctx.lineWidth=8*scale;ctx.lineCap='round';ctx.stroke()
+    // Hand
     ctx.beginPath();ctx.moveTo(cx,cy);ctx.lineTo(tipX,tipY)
-    ctx.strokeStyle='var(--text)';ctx.lineWidth=2*scale;ctx.lineCap='round';ctx.stroke()
+    ctx.strokeStyle='var(--text)';ctx.lineWidth=2.5*scale;ctx.lineCap='round';ctx.stroke()
+    // Hand tip
+    ctx.beginPath();ctx.arc(tipX,tipY,3*scale,0,Math.PI*2)
+    ctx.fillStyle='var(--text)';ctx.fill()
   }
 
-  // BPM number in center
-  ctx.fillStyle='var(--text)';ctx.font=600+' '+(48*scale)+'px system-ui,sans-serif'
-  ctx.textAlign='center';ctx.textBaseline='middle';ctx.letterSpacing='-1px'
-  ctx.fillText(metroBpm.toString(),cx,cy-4*scale)
-
-  // "BPM" label
-  ctx.fillStyle='var(--text2)';ctx.font=(12*scale)+'px system-ui,sans-serif'
+  // BPM
+  ctx.fillStyle='var(--text)'
+  ctx.font=600+' '+(44*scale)+'px system-ui,sans-serif'
   ctx.textAlign='center';ctx.textBaseline='middle'
-  ctx.fillText('BPM',cx,cy+(28*scale))
+  ctx.fillText(metroBpm.toString(),cx,cy-6*scale)
+  ctx.fillStyle='var(--text2)'
+  ctx.font=(10*scale)+'px system-ui,sans-serif'
+  ctx.fillText('BPM',cx,cy+(26*scale))
 }
 
 // Rotary control
-let rotaryAngle=null,rotaryAccum=0,rotaryLastBpm=metroBpm
+let rotaryAngle=null,rotaryAccum=0
 function getCanvasAngle(e){
   const rect=canvas.getBoundingClientRect()
-  const dpr=getDPI()
-  const cx=(rect.width)/2,cy=(rect.height)/2
-  const clientX=e.touches?e.touches[0].clientX:e.clientX
-  const clientY=e.touches?e.touches[0].clientY:e.clientY
-  const x=clientX-rect.left-cx,y=clientY-rect.top-cy
+  const cx=rect.width/2,cy=rect.height/2
+  const x=(e.touches?e.touches[0].clientX:e.clientX)-rect.left-cx
+  const y=(e.touches?e.touches[0].clientY:e.clientY)-rect.top-cy
   return Math.atan2(y,x)
 }
-
-canvas.addEventListener('touchstart',(e)=>{
-  rotaryAngle=getCanvasAngle(e)
-  rotaryAccum=0
-  rotaryLastBpm=metroBpm
-  $('touchHint').classList.add('show')
-  setTimeout(()=>$('touchHint').classList.remove('show'),2000)
-},{passive:true})
-canvas.addEventListener('touchmove',(e)=>{
+function handleRotaryMove(e){
   if(rotaryAngle===null)return
-  e.preventDefault()
   const a=getCanvasAngle(e)
   let diff=a-rotaryAngle
   if(diff>Math.PI)diff-=Math.PI*2
@@ -409,41 +439,20 @@ canvas.addEventListener('touchmove',(e)=>{
     rotaryAccum-=steps*0.15
   }
   rotaryAngle=a
-},{passive:false})
+}
+canvas.addEventListener('touchstart',(e)=>{rotaryAngle=getCanvasAngle(e);rotaryAccum=0},{passive:true})
+canvas.addEventListener('touchmove',handleRotaryMove,{passive:false})
 canvas.addEventListener('touchend',()=>{rotaryAngle=null;rotaryAccum=0})
-
-// Mouse support
-canvas.addEventListener('mousedown',(e)=>{
-  rotaryAngle=getCanvasAngle(e)
-  rotaryAccum=0
-  rotaryLastBpm=metroBpm
-})
-canvas.addEventListener('mousemove',(e)=>{
-  if(rotaryAngle===null)return
-  const a=getCanvasAngle(e)
-  let diff=a-rotaryAngle
-  if(diff>Math.PI)diff-=Math.PI*2
-  if(diff<-Math.PI)diff+=Math.PI*2
-  rotaryAccum+=diff
-  if(Math.abs(rotaryAccum)>0.15){
-    const steps=Math.sign(rotaryAccum)*Math.floor(Math.abs(rotaryAccum)/0.15)
-    setBpm(metroBpm+steps)
-    rotaryAccum-=steps*0.15
-  }
-  rotaryAngle=a
-})
+canvas.addEventListener('mousedown',(e)=>{rotaryAngle=getCanvasAngle(e);rotaryAccum=0})
+canvas.addEventListener('mousemove',handleRotaryMove)
 canvas.addEventListener('mouseup',()=>{rotaryAngle=null;rotaryAccum=0})
 canvas.addEventListener('mouseleave',()=>{rotaryAngle=null;rotaryAccum=0})
 
-// Time sig buttons
-document.querySelectorAll('#timeSigGroup .btn').forEach(b=>{
-  b.addEventListener('click',()=>setTimeSig(b.dataset.sig))
-})
-// Subdiv buttons
-document.querySelectorAll('#subdivGroup .btn').forEach(b=>{
-  b.addEventListener('click',()=>setSubdiv(b.dataset.sub))
-})
+// Time sig / subdiv buttons
+document.querySelectorAll('#timeSigGroup .btn').forEach(b=>b.addEventListener('click',()=>setTimeSig(b.dataset.sig)))
+document.querySelectorAll('#subdivGroup .btn').forEach(b=>b.addEventListener('click',()=>setSubdiv(b.dataset.sub)))
 
+// Metronome engine
 function metroStart(){
   if(metroPlaying){metroStop();return}
   if(!metroCtx)metroCtx=new AudioContext()
@@ -453,8 +462,6 @@ function metroStart(){
   metroTimer=setInterval(metroScheduler,25)
   metroAnimRaf=requestAnimationFrame(metroAnimLoop)
   $('metroPlayBtn').textContent='⏹ 停止';$('metroPlayBtn').classList.add('stop')
-  // Hide hint
-  $('touchHint').classList.remove('show')
 }
 function metroStop(){
   metroPlaying=false
@@ -482,13 +489,9 @@ function metroClick(time,vol,freq){
   osc.connect(gain);gain.connect(metroCtx.destination);osc.start(time);osc.stop(time+0.035)
 }
 function metroAnimLoop(ts){
-  if(!metroPlaying||!metroCtx){drawMetro();return}
+  if(!metroPlaying||!metroCtx)return
   const t=metroCtx.currentTime
-  const elapsed=t-metroStartTime
-  const totalBeats=elapsed*metroBpm/60
-  currentBeatPos=Math.floor(totalBeats)%metroBeatsPerBar
-  currentBeatFrac=totalBeats-Math.floor(totalBeats)
-  // Hand angle: continuous rotation, 0 to 2π per measure
+  const totalBeats=(t-metroStartTime)*metroBpm/60
   const handAngle=((totalBeats%metroBeatsPerBar)/metroBeatsPerBar)*Math.PI*2-Math.PI/2
   drawMetro(handAngle)
   metroAnimRaf=requestAnimationFrame(metroAnimLoop)
@@ -505,7 +508,6 @@ $('tapBtn').addEventListener('click',()=>{
     if(bpm>=30&&bpm<=280)setBpm(bpm)
   }
 })
-
 $('metroPlayBtn').addEventListener('click',metroStart)
 document.addEventListener('keydown',e=>{
   if(e.target.tagName==='INPUT'||e.target.tagName==='SELECT')return
@@ -519,7 +521,7 @@ document.querySelectorAll('.tab-btn').forEach(btn=>{
     document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'))
     btn.classList.add('active');$('panel-'+btn.dataset.tab).classList.add('active')
     if(btn.dataset.tab==='tuner'){if(metroPlaying)metroStop()}else{if(tunerActive)stopTuner()}
-    if(btn.dataset.tab==='metronome'){resizeCanvas()}
+    if(btn.dataset.tab==='metronome')resizeCanvas()
   })
 })
 
@@ -532,10 +534,8 @@ document.addEventListener('touchstart',()=>{
 document.addEventListener('click',()=>{
   if(!metroCtx)metroCtx=new AudioContext()
   if(metroCtx.state==='suspended')metroCtx.resume()
-  if(tunerCtx&&tunerCtx.state==='suspended')tunerCtx.resume()
 },{once:true})
 
-// Resize
 window.addEventListener('resize',resizeCanvas)
 resizeCanvas()
 </script>
