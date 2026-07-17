@@ -481,6 +481,7 @@ $('tunerStartBtn').addEventListener('click',startTuner)
 let metroCtx=null
 let metroPlaying=false
 let metroNextTime=0
+let metroStartTime=0
 let metroTimer=null
 let metroBeatIndex=0
 let metroBpm=120
@@ -488,7 +489,6 @@ let metroBeatsPerBar=4
 let metroSubdiv=0 // 0=none, 2=8th, 3=triplet, 4=16th
 let metroAccent=true
 let metroVisualRaf=null
-let metroLastVisualTime=0
 
 // Tap tempo
 let tapTimes=[]
@@ -513,9 +513,9 @@ function metroStart(){
   updateMetroParams()
   metroPlaying=true
   metroBeatIndex=0
-  metroNextTime=metroCtx.currentTime+0.05
+  metroStartTime=metroCtx.currentTime+0.05
+  metroNextTime=metroStartTime
   metroTimer=setInterval(metroScheduler,25)
-  metroLastVisualTime=metroCtx.currentTime
   metroVisualRaf=requestAnimationFrame(metroVisualLoop)
   $('metroPlayBtn').textContent='⏹ 停止'
   $('metroPlayBtn').className='metro-btn stop'
@@ -572,9 +572,8 @@ function metroScheduleClick(time,volume,freq){
 function metroVisualLoop(now){
   if(!metroPlaying||!metroCtx)return
   const t=metroCtx.currentTime
-  const beatLen=60/metroBpm
-  // Calculate beat position independently using AudioContext time
-  const totalBeats=t*metroBpm/60
+  // Sync visual with audio by using same time reference as scheduler
+  const totalBeats=(t-metroStartTime)*metroBpm/60
   const currentBeat=Math.floor(totalBeats)%metroBeatsPerBar
   const beatFrac=totalBeats-Math.floor(totalBeats)
 
