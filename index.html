@@ -1,0 +1,681 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>调音器 &amp; 节拍器</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#1a1a2e;
+  --surface:#16213e;
+  --surface2:#0f3460;
+  --text:#e8e8e8;
+  --text2:#a0a0b0;
+  --accent:#e94560;
+  --green:#2ecc71;
+  --yellow:#f1c40f;
+  --red:#e74c3c;
+  --tab-inactive:#0f3460;
+  --radius:12px;
+  --font:system-ui,-apple-system,sans-serif;
+}
+html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--font);-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+body{display:flex;flex-direction:column;overflow:hidden}
+/* Header & Tabs */
+.header{padding:12px 16px 0;text-align:center;flex-shrink:0}
+.header h1{font-size:18px;font-weight:600;letter-spacing:1px;margin-bottom:10px;color:var(--text)}
+.tab-bar{display:flex;gap:4px;background:var(--surface);border-radius:var(--radius);padding:4px}
+.tab-btn{flex:1;padding:10px;text-align:center;border:none;background:transparent;color:var(--text2);font-size:15px;font-weight:500;border-radius:8px;cursor:pointer;transition:.2s}
+.tab-btn.active{background:var(--surface2);color:var(--text)}
+/* Content */
+.content{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:16px}
+.tab-panel{display:none;flex-direction:column;gap:16px;height:100%}
+.tab-panel.active{display:flex}
+/* ===== Tuner ===== */
+.tuner-display{background:var(--surface);border-radius:var(--radius);padding:20px;text-align:center;position:relative}
+.tuner-note{font-size:64px;font-weight:700;letter-spacing:2px}
+.tuner-octave{font-size:24px;color:var(--text2);margin-left:4px}
+.tuner-freq{font-size:14px;color:var(--text2);margin-top:4px}
+.tuner-cents{font-size:16px;margin-top:2px;font-weight:500}
+.tuner-cents.flat{color:var(--yellow)}
+.tuner-cents.sharp{color:var(--yellow)}
+.tuner-cents.in-tune{color:var(--green)}
+.tuner-status{font-size:14px;color:var(--text2);margin-top:8px;min-height:20px}
+/* Deviation Gauge */
+.gauge-wrap{position:relative;width:200px;height:100px;margin:12px auto 0;overflow:hidden}
+.gauge-bg{position:absolute;inset:0;border-radius:100px 100px 0 0;background:conic-gradient(from 180deg at 50% 100%,var(--red) 0%,var(--yellow) 20%,var(--green) 40%,var(--green) 60%,var(--yellow) 80%,var(--red) 100%)}
+.gauge-mask{position:absolute;inset:0;border-radius:100px 100px 0 0;clip-path:polygon(0 100%,100% 100%,100% 100%,0 100%)}
+.gauge-needle{position:absolute;bottom:0;left:50%;width:2px;height:90px;background:var(--text);transform-origin:bottom center;transform:translateX(-50%) rotate(0deg);transition:transform .1s ease;border-radius:1px;z-index:2}
+.gauge-dot{position:absolute;bottom:-6px;left:50%;width:12px;height:12px;background:var(--text);border-radius:50%;transform:translateX(-50%);z-index:3}
+.gauge-center{position:absolute;bottom:0;left:50%;transform:translateX(-50%);font-size:11px;color:var(--text2);z-index:1;padding-bottom:4px}
+/* Tuner Controls */
+.tuner-controls{display:flex;gap:12px;flex-wrap:wrap}
+.tuner-controls select,.tuner-controls button{flex:1;min-width:0;padding:12px;border:none;border-radius:8px;background:var(--surface);color:var(--text);font-size:14px;cursor:pointer;-webkit-appearance:none;appearance:none}
+.tuner-controls select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' fill='%23a0a0b0'%3E%3Cpath d='M1 1l5 5 5-5'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;padding-right:32px}
+/* String indicators */
+.strings-row{display:flex;gap:6px;justify-content:center;flex-wrap:wrap;margin-top:4px}
+.string-dot{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;background:var(--surface2);color:var(--text2);transition:.2s}
+.string-dot.active{background:var(--accent);color:#fff;transform:scale(1.15);box-shadow:0 0 12px rgba(233,69,96,.5)}
+.string-dot.in-tune{background:var(--green);color:#fff;transform:scale(1.1);box-shadow:0 0 12px rgba(46,204,113,.5)}
+/* ===== Metronome ===== */
+.metro-bpm-wrap{text-align:center;padding:20px;background:var(--surface);border-radius:var(--radius)}
+.metro-bpm-label{font-size:13px;color:var(--text2);text-transform:uppercase;letter-spacing:2px;margin-bottom:4px}
+.bpm-display-row{display:flex;align-items:center;justify-content:center;gap:16px}
+.metro-bpm-number{font-size:56px;font-weight:700;line-height:1;width:120px;text-align:center}
+.metro-bpm-input{width:80px;padding:8px;border:none;border-radius:8px;background:var(--surface2);color:var(--text);font-size:24px;font-weight:600;text-align:center}
+.metro-bpm-input::-webkit-inner-spin-button{-webkit-appearance:none}
+input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:4px;border-radius:2px;background:var(--surface2);outline:none;margin:12px 0}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:24px;height:24px;border-radius:50%;background:var(--accent);cursor:pointer;border:3px solid var(--surface);box-shadow:0 0 0 2px var(--accent)}
+input[type=range]::-moz-range-thumb{width:24px;height:24px;border-radius:50%;background:var(--accent);cursor:pointer;border:3px solid var(--surface)}
+/* Tempo presets */
+.tempo-presets{display:flex;gap:4px;flex-wrap:wrap;justify-content:center}
+.tempo-presets button{padding:4px 10px;border:none;border-radius:6px;background:var(--surface2);color:var(--text2);font-size:11px;cursor:pointer;transition:.2s}
+.tempo-presets button:active{background:var(--accent);color:#fff}
+/* Beat visualizer */
+.beat-vis-wrap{display:flex;align-items:center;justify-content:center;padding:24px 0}
+.beat-ring{width:120px;height:120px;border-radius:50%;border:4px solid var(--surface2);display:flex;align-items:center;justify-content:center;transition:border-color .05s,box-shadow .05s,transform .05s}
+.beat-ring.active{border-color:var(--accent);box-shadow:0 0 30px rgba(233,69,96,.6);transform:scale(1.05)}
+.beat-ring.accent{border-color:var(--green);box-shadow:0 0 30px rgba(46,204,113,.6)}
+.beat-count{font-size:32px;font-weight:700;color:var(--text2);transition:color .05s}
+.beat-count.active{color:var(--text)}
+/* Metro controls */
+.metro-controls{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.metro-controls label{display:flex;flex-direction:column;gap:4px;font-size:12px;color:var(--text2)}
+.metro-controls select{padding:10px;border:none;border-radius:8px;background:var(--surface);color:var(--text);font-size:14px;cursor:pointer;-webkit-appearance:none;appearance:none}
+.metro-btn-row{display:flex;gap:10px;margin-top:4px}
+.metro-btn{flex:1;padding:16px;border:none;border-radius:var(--radius);font-size:18px;font-weight:600;cursor:pointer;transition:.2s;color:#fff}
+.metro-btn.play{background:var(--green)}
+.metro-btn.stop{background:var(--accent)}
+.metro-btn.tap{background:var(--surface2);color:var(--text)}
+.metro-btn:active{transform:scale(.96)}
+.metro-btn.tap:active{background:var(--accent);color:#fff}
+/* Toggle switch */
+.toggle-row{display:flex;align-items:center;gap:8px}
+.toggle-row label{font-size:13px;color:var(--text2);cursor:pointer}
+.toggle{position:relative;width:44px;height:24px;background:var(--surface2);border-radius:12px;cursor:pointer;transition:.2s;flex-shrink:0}
+.toggle.on{background:var(--green)}
+.toggle::after{content:'';position:absolute;top:2px;left:2px;width:20px;height:20px;border-radius:50%;background:var(--text);transition:.2s}
+.toggle.on::after{left:22px}
+/* Responsive */
+@media(max-width:480px){
+  .tuner-note{font-size:48px}
+  .gauge-wrap{width:160px;height:80px}
+  .metro-bpm-number{font-size:42px;width:90px}
+  .beat-ring{width:100px;height:100px}
+}
+@media(min-width:768px){
+  .content{padding:24px;max-width:600px;margin:0 auto}
+}
+/* Scroll */
+.content::-webkit-scrollbar{width:4px}
+.content::-webkit-scrollbar-thumb{background:var(--surface2);border-radius:2px}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>♫ 调音器 · 节拍器</h1>
+  <div class="tab-bar">
+    <button class="tab-btn active" data-tab="tuner">调音器</button>
+    <button class="tab-btn" data-tab="metronome">节拍器</button>
+  </div>
+</div>
+
+<div class="content">
+  <!-- ===== TUNER PANEL ===== -->
+  <div class="tab-panel active" id="panel-tuner">
+    <div class="tuner-display">
+      <div>
+        <span class="tuner-note" id="noteDisplay">-</span>
+        <span class="tuner-octave" id="octaveDisplay"></span>
+      </div>
+      <div class="tuner-freq" id="freqDisplay">— Hz</div>
+      <div class="tuner-cents" id="centsDisplay">&nbsp;</div>
+      <div class="gauge-wrap" id="gaugeWrap">
+        <div class="gauge-bg"></div>
+        <div class="gauge-needle" id="gaugeNeedle"></div>
+        <div class="gauge-dot"></div>
+        <div class="gauge-center">0¢</div>
+      </div>
+      <div class="tuner-status" id="tunerStatus">点击下方「开始调音」并弹奏</div>
+    </div>
+
+    <div class="tuner-controls">
+      <select id="instrumentSelect">
+        <option value="guitar">吉他</option>
+        <option value="bass">贝斯</option>
+        <option value="ukulele">尤克里里</option>
+      </select>
+      <select id="tuningSelect"></select>
+    </div>
+
+    <div class="strings-row" id="stringsRow"></div>
+
+    <button class="metro-btn play" id="tunerStartBtn" style="margin-top:4px">🎤 开始调音</button>
+  </div>
+
+  <!-- ===== METRONOME PANEL ===== -->
+  <div class="tab-panel" id="panel-metronome">
+    <div class="metro-bpm-wrap">
+      <div class="metro-bpm-label">速度 (BPM)</div>
+      <div class="bpm-display-row">
+        <span class="metro-bpm-number" id="bpmDisplay">120</span>
+        <input class="metro-bpm-input" id="bpmInput" type="number" min="30" max="280" value="120">
+      </div>
+      <input type="range" id="bpmSlider" min="30" max="280" value="120">
+      <div class="tempo-presets">
+        <button data-bpm="40">Largo</button>
+        <button data-bpm="66">Adagio</button>
+        <button data-bpm="80">Andante</button>
+        <button data-bpm="108">Moderato</button>
+        <button data-bpm="120">Allegro</button>
+        <button data-bpm="144">Vivace</button>
+        <button data-bpm="176">Presto</button>
+      </div>
+    </div>
+
+    <div class="beat-vis-wrap">
+      <div class="beat-ring" id="beatRing">
+        <span class="beat-count" id="beatCount">1</span>
+      </div>
+    </div>
+
+    <div class="metro-controls">
+      <label>拍号
+        <select id="timeSigSelect">
+          <option value="2/4">2/4</option>
+          <option value="3/4">3/4</option>
+          <option value="4/4" selected>4/4</option>
+          <option value="6/8">6/8</option>
+        </select>
+      </label>
+      <label>细分
+        <select id="subdivSelect">
+          <option value="0">无</option>
+          <option value="2">八分</option>
+          <option value="3">三连音</option>
+          <option value="4">十六分</option>
+        </select>
+      </label>
+    </div>
+
+    <div class="toggle-row">
+      <div class="toggle on" id="accentToggle"></div>
+      <label>重拍强调</label>
+    </div>
+
+    <div class="metro-btn-row">
+      <button class="metro-btn play" id="metroPlayBtn">▶ 播放</button>
+      <button class="metro-btn tap" id="tapBtn">👆 拍速</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ====== Utilities ======
+function $(id){return document.getElementById(id)}
+function qs(s){return document.querySelector(s)}
+
+// ====== Note/Tuning Database ======
+const NOTE_NAMES = ['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
+function freqToNote(freq, refA=440){
+  if(!freq||freq<20)return null
+  const n=12*Math.log2(freq/refA)+69
+  const midi=Math.round(n)
+  const note=NOTE_NAMES[midi%12]
+  const oct=Math.floor(midi/12)-1
+  const exact=refA*Math.pow(2,(midi-69)/12)
+  const cents=1200*Math.log2(freq/exact)
+  return{note,oct,midi,cents,freq,exact}
+}
+function noteName(n,o){return n+o}
+function formatCents(c){return(c>0?'+':'')+c.toFixed(1)+'¢'}
+
+const TUNINGS = {
+  guitar:{
+    standard:  {name:'标准调弦', strings:['E2','A2','D3','G3','B3','E4']},
+    dropD:     {name:'Drop D',   strings:['D2','A2','D3','G3','B3','E4']},
+    openG:     {name:'Open G',   strings:['D2','G2','D3','G3','B3','D4']},
+    openD:     {name:'Open D',   strings:['D2','A2','D3','F#3','A3','D4']},
+    dadgad:    {name:'DADGAD',   strings:['D2','A2','D3','G3','A3','D4']},
+  },
+  bass:{
+    standard4:{name:'4弦标准', strings:['E1','A1','D2','G2']},
+    standard5:{name:'5弦标准', strings:['B0','E1','A1','D2','G2']},
+    dropDBass:{name:'Drop D',  strings:['D1','A1','D2','G2']},
+  },
+  ukulele:{
+    standard:{name:'标准 GCEA', strings:['G4','C4','E4','A4']},
+    dTuning: {name:'D调 ADF#B',strings:['A4','D4','F#4','B4']},
+    lowG:    {name:'Low G',    strings:['G3','C4','E4','A4']},
+  }
+};
+function parseNote(str){
+  const m=str.match(/^([A-G]#?)(-?\d+)$/)
+  if(!m)return null
+  const noteName = m[1], oct = parseInt(m[2])
+  const semitone = NOTE_NAMES.indexOf(noteName)
+  if(semitone<0)return null
+  const midi = (oct+1)*12+semitone
+  const freq = 440*Math.pow(2,(midi-69)/12)
+  return{note:noteName,oct,midi,freq}
+}
+
+// Populate tuning select
+function populateTunings(){
+  const inst=$('instrumentSelect').value
+  const sel=$('tuningSelect')
+  sel.innerHTML=''
+  const tunings=TUNINGS[inst]
+  for(const[key,val]of Object.entries(tunings)){
+    const o=document.createElement('option')
+    o.value=key
+    o.textContent=val.name+' ('+val.strings.join(' ')+')'
+    sel.appendChild(o)
+  }
+  updateStrings()
+}
+function updateStrings(){
+  const inst=$('instrumentSelect').value
+  const tuning=$('tuningSelect').value
+  const strings=TUNINGS[inst][tuning].strings
+  const row=$('stringsRow')
+  row.innerHTML=''
+  strings.forEach((s,i)=>{
+    const d=document.createElement('div')
+    d.className='string-dot'
+    d.id='stringDot'+(i+1)
+    d.textContent=s
+    row.appendChild(d)
+  })
+}
+$('instrumentSelect').addEventListener('change',populateTunings)
+$('tuningSelect').addEventListener('change',updateStrings)
+populateTunings()
+
+// ====== Tuner Engine ======
+let tunerCtx=null, tunerAnalyser=null, tunerStream=null
+let tunerActive=false, tunerRaf=null
+let smoothedLogFreq=null
+let currentTargetFreq=null
+
+function detectPitch(buffer,sampleRate){
+  const N=buffer.length
+  const minLag=Math.floor(sampleRate/1500)
+  const maxLag=Math.floor(sampleRate/55)
+  // RMS silence gate
+  let sumSq=0
+  for(let i=0;i<N;i++)sumSq+=buffer[i]*buffer[i]
+  const rms=Math.sqrt(sumSq/N)
+  if(rms<0.008)return null
+
+  function acf(lag){
+    let s=0
+    for(let i=0;i<N-lag;i++)s+=buffer[i]*buffer[i+lag]
+    return s
+  }
+  const r0=acf(0)
+  if(r0<1e-10)return null
+
+  // Skip initial descent
+  let lag=minLag
+  while(lag<maxLag&&acf(lag)>acf(lag+1))lag++
+
+  // Find highest local max
+  let bestLag=-1,bestVal=-Infinity
+  while(lag<maxLag-1){
+    const a=acf(lag-1),b=acf(lag),c=acf(lag+1)
+    if(b>a&&b>=c&&b>bestVal){bestVal=b;bestLag=lag}
+    lag++
+  }
+  if(bestLag<0||bestVal/r0<0.4)return null
+
+  // Parabolic interpolation
+  const a=acf(bestLag-1),b=bestVal,c=acf(bestLag+1)
+  const shift=(a-c)/(2*(a-2*b+c))
+  return sampleRate/(bestLag+shift)
+}
+
+async function startTuner(){
+  if(tunerActive){stopTuner();return}
+  try{
+    tunerStream=await navigator.mediaDevices.getUserMedia({
+      audio:{echoCancellation:false,noiseSuppression:false,autoGainControl:false}
+    })
+    tunerCtx=new AudioContext()
+    const src=tunerCtx.createMediaStreamSource(tunerStream)
+    tunerAnalyser=tunerCtx.createAnalyser()
+    tunerAnalyser.fftSize=4096
+    src.connect(tunerAnalyser)
+    tunerActive=true
+    smoothedLogFreq=null
+    $('tunerStartBtn').textContent='⏹ 停止调音'
+    $('tunerStartBtn').className='metro-btn stop'
+    $('tunerStatus').textContent='调音中...弹奏一根弦'
+    tunerLoop()
+  }catch(e){
+    $('tunerStatus').textContent='麦克风访问被拒绝，请允许麦克风权限'
+    console.error(e)
+  }
+}
+function stopTuner(){
+  tunerActive=false
+  if(tunerRaf){cancelAnimationFrame(tunerRaf);tunerRaf=null}
+  if(tunerStream){tunerStream.getTracks().forEach(t=>t.stop());tunerStream=null}
+  if(tunerCtx){tunerCtx.close();tunerCtx=null}
+  smoothedLogFreq=null
+  $('tunerStartBtn').textContent='🎤 开始调音'
+  $('tunerStartBtn').className='metro-btn play'
+  $('tunerStatus').textContent='点击「开始调音」并弹奏'
+  $('noteDisplay').textContent='-'
+  $('octaveDisplay').textContent=''
+  $('freqDisplay').textContent='— Hz'
+  $('centsDisplay').textContent=''
+  $('centsDisplay').className='tuner-cents'
+  $('gaugeNeedle').style.transform='translateX(-50%) rotate(0deg)'
+  // Clear string highlights
+  document.querySelectorAll('.string-dot').forEach(d=>{d.className='string-dot'})
+}
+function tunerLoop(){
+  if(!tunerActive)return
+  const buf=new Float32Array(tunerAnalyser.fftSize)
+  tunerAnalyser.getFloatTimeDomainData(buf)
+  const rawFreq=detectPitch(buf,tunerCtx.sampleRate)
+
+  if(rawFreq){
+    // Smooth in log space
+    const logF=Math.log2(rawFreq)
+    if(smoothedLogFreq===null)smoothedLogFreq=logF
+    else smoothedLogFreq+=(logF-smoothedLogFreq)*0.3
+    const freq=Math.pow(2,smoothedLogFreq)
+    const info=freqToNote(freq)
+    if(info){
+      // Find closest target string
+      const inst=$('instrumentSelect').value
+      const tuning=$('tuningSelect').value
+      const strings=TUNINGS[inst][tuning].strings
+      let bestStr=null,bestCents=Infinity
+      strings.forEach((s,i)=>{
+        const p=parseNote(s)
+        if(!p)return
+        const c=Math.abs(1200*Math.log2(freq/p.freq))
+        if(c<bestCents){bestCents=c;bestStr=i}
+      })
+      // Only show if close to a target (within 200 cents = 2 semitones)
+      if(bestCents<200){
+        const p=parseNote(strings[bestStr])
+        currentTargetFreq=p.freq
+        const deviation=1200*Math.log2(freq/currentTargetFreq)
+
+        // Check if we're actually playing the target note (not a harmonic)
+        const halfStep=1200*Math.log2(freq/(currentTargetFreq*2))
+        const halfStepUp=1200*Math.log2(freq/(currentTargetFreq/2))
+        let displayNote=info.note,displayOct=info.oct,displayFreq=freq,displayCents=deviation
+        let targetNote=strings[bestStr]
+
+        // If deviation is > 50 cents but we're closer to the next octave's target, show the octave note
+        if(Math.abs(deviation)>50){
+          // Still show the detected note but with proper cents to target
+          displayCents=deviation
+        }
+
+        $('noteDisplay').textContent=displayNote
+        $('octaveDisplay').textContent=displayOct
+        $('freqDisplay').textContent=freq.toFixed(1)+' Hz'
+        $('centsDisplay').textContent=formatCents(displayCents)
+
+        // Color based on deviation
+        const absCents=Math.abs(displayCents)
+        $('centsDisplay').className='tuner-cents'+(absCents<5?' in-tune':absCents<20?'':'')+
+          (displayCents>0&&absCents>=5?' sharp':displayCents<0&&absCents>=5?' flat':'')
+
+        // Needle angle: -50 to +50 cents mapped to -60 to +60 degrees
+        const angle=Math.max(-60,Math.min(60,displayCents/50*60))
+        $('gaugeNeedle').style.transform='translateX(-50%) rotate('+angle+'deg)'
+
+        // Highlight string
+        document.querySelectorAll('.string-dot').forEach((d,i)=>{
+          d.className='string-dot'
+          if(i===bestStr){
+            if(absCents<5)d.classList.add('in-tune')
+            else d.classList.add('active')
+          }
+        })
+
+        $('tunerStatus').textContent='目标: '+targetNote+'  '+
+          (absCents<5?'✓ 准了！':absCents<15?'接近了':displayCents>0?'↗ 偏高':'↙ 偏低')
+      }else{
+        // Show detected note but no target
+        $('noteDisplay').textContent=info.note
+        $('octaveDisplay').textContent=info.oct
+        $('freqDisplay').textContent=freq.toFixed(1)+' Hz'
+        $('centsDisplay').textContent=''
+        $('centsDisplay').className='tuner-cents'
+        $('gaugeNeedle').style.transform='translateX(-50%) rotate(0deg)'
+        $('tunerStatus').textContent='继续弹奏...'
+        document.querySelectorAll('.string-dot').forEach(d=>{d.className='string-dot'})
+      }
+    }
+  }else{
+    // Fade out display
+    if(smoothedLogFreq!==null){
+      smoothedLogFreq+=(Math.log2(55)-smoothedLogFreq)*0.05
+      if(Math.abs(smoothedLogFreq-Math.log2(55))<0.01){
+        smoothedLogFreq=null
+        $('noteDisplay').textContent='-'
+        $('octaveDisplay').textContent=''
+        $('freqDisplay').textContent='— Hz'
+        $('centsDisplay').textContent=''
+        $('centsDisplay').className='tuner-cents'
+        $('gaugeNeedle').style.transform='translateX(-50%) rotate(0deg)'
+      }
+    }
+  }
+  tunerRaf=requestAnimationFrame(tunerLoop)
+}
+$('tunerStartBtn').addEventListener('click',startTuner)
+
+// ====== Metronome ======
+let metroCtx=null
+let metroPlaying=false
+let metroNextTime=0
+let metroTimer=null
+let metroBeatIndex=0
+let metroBpm=120
+let metroBeatsPerBar=4
+let metroSubdiv=0 // 0=none, 2=8th, 3=triplet, 4=16th
+let metroAccent=true
+let metroVisualRaf=null
+let metroLastVisualTime=0
+
+// Tap tempo
+let tapTimes=[]
+let tapTimer=null
+
+function getTimeSig(){
+  const v=$('timeSigSelect').value
+  const parts=v.split('/')
+  return{beats:parseInt(parts[0]),noteVal:parseInt(parts[1])}
+}
+function updateMetroParams(){
+  const sig=getTimeSig()
+  metroBeatsPerBar=sig.beats
+  metroSubdiv=parseInt($('subdivSelect').value)
+  metroAccent=$('accentToggle').classList.contains('on')
+}
+
+function metroStart(){
+  if(metroPlaying){metroStop();return}
+  if(!metroCtx)metroCtx=new AudioContext()
+  if(metroCtx.state==='suspended')metroCtx.resume()
+  updateMetroParams()
+  metroPlaying=true
+  metroBeatIndex=0
+  metroNextTime=metroCtx.currentTime+0.05
+  metroTimer=setInterval(metroScheduler,25)
+  metroLastVisualTime=metroCtx.currentTime
+  metroVisualRaf=requestAnimationFrame(metroVisualLoop)
+  $('metroPlayBtn').textContent='⏹ 停止'
+  $('metroPlayBtn').className='metro-btn stop'
+}
+function metroStop(){
+  metroPlaying=false
+  if(metroTimer){clearInterval(metroTimer);metroTimer=null}
+  if(metroVisualRaf){cancelAnimationFrame(metroVisualRaf);metroVisualRaf=null}
+  $('metroPlayBtn').textContent='▶ 播放'
+  $('metroPlayBtn').className='metro-btn play'
+  $('beatRing').className='beat-ring'
+  $('beatCount').className='beat-count'
+  $('beatCount').textContent='1'
+}
+
+function metroScheduler(){
+  if(!metroPlaying||!metroCtx)return
+  const lookAhead=0.1, beatLen=60/metroBpm
+  while(metroNextTime<metroCtx.currentTime+lookAhead){
+    metroScheduleBeat(metroNextTime,metroBeatIndex)
+    if(metroSubdiv>0){
+      const n=metroSubdiv
+      for(let s=1;s<n;s++){
+        const subTime=metroNextTime+s*beatLen/n
+        if(subTime<metroCtx.currentTime+lookAhead+0.05)
+          metroScheduleClick(subTime,0.3)
+      }
+    }
+    metroBeatIndex++
+    metroNextTime+=beatLen
+    if(metroBeatIndex>=metroBeatsPerBar)metroBeatIndex=0
+  }
+}
+
+function metroScheduleBeat(time,index){
+  const isAccent=metroAccent&&index===0
+  metroScheduleClick(time,isAccent?1:0.7,isAccent?1500:800)
+  // Visual - record upcoming beat for visual sync
+}
+function metroScheduleClick(time,volume,freq){
+  if(!metroCtx)return
+  const osc=metroCtx.createOscillator()
+  const gain=metroCtx.createGain()
+  osc.type='square'
+  osc.frequency.setValueAtTime(freq||800,time)
+  gain.gain.setValueAtTime(volume*0.3,time)
+  gain.gain.exponentialRampToValueAtTime(0.001,time+0.03)
+  osc.connect(gain)
+  gain.connect(metroCtx.destination)
+  osc.start(time)
+  osc.stop(time+0.03)
+}
+
+function metroVisualLoop(now){
+  if(!metroPlaying||!metroCtx)return
+  const t=metroCtx.currentTime
+  const beatLen=60/metroBpm
+  // Calculate beat position independently using AudioContext time
+  const totalBeats=t*metroBpm/60
+  const currentBeat=Math.floor(totalBeats)%metroBeatsPerBar
+  const beatFrac=totalBeats-Math.floor(totalBeats)
+
+  const displayBeat=currentBeat+1
+  $('beatCount').textContent=displayBeat
+
+  const isAccent=metroAccent&&currentBeat===0
+  const ring=$('beatRing')
+  const count=$('beatCount')
+  if(beatFrac<0.08){
+    ring.className='beat-ring active'+(isAccent?' accent':'')
+    count.className='beat-count active'
+  }else if(beatFrac<0.25){
+    ring.className='beat-ring'+(isAccent?' accent':'')
+    count.className='beat-count'
+  }else{
+    ring.className='beat-ring'
+    count.className='beat-count'
+  }
+  metroVisualRaf=requestAnimationFrame(metroVisualLoop)
+}
+
+// BPM controls
+function setBpm(v){
+  metroBpm=Math.round(Math.max(30,Math.min(280,v)))
+  $('bpmDisplay').textContent=metroBpm
+  $('bpmInput').value=metroBpm
+  $('bpmSlider').value=metroBpm
+}
+$('bpmSlider').addEventListener('input',()=>setBpm(parseInt($('bpmSlider').value)))
+$('bpmInput').addEventListener('change',()=>setBpm(parseInt($('bpmInput').value)))
+document.querySelectorAll('.tempo-presets button').forEach(b=>{
+  b.addEventListener('click',()=>setBpm(parseInt(b.dataset.bpm)))
+})
+
+// Tap tempo
+$('tapBtn').addEventListener('click',()=>{
+  const now=performance.now()
+  if(tapTimer)clearTimeout(tapTimer)
+  tapTimer=setTimeout(()=>{tapTimes=[]},2500)
+  tapTimes.push(now)
+  if(tapTimes.length>8)tapTimes.shift()
+  if(tapTimes.length>=2){
+    const intervals=[]
+    for(let i=1;i<tapTimes.length;i++)intervals.push(tapTimes[i]-tapTimes[i-1])
+    const avg=intervals.reduce((a,b)=>a+b)/intervals.length
+    const bpm=Math.round(60000/avg)
+    if(bpm>=30&&bpm<=280)setBpm(bpm)
+  }
+})
+
+// Accent toggle
+$('accentToggle').addEventListener('click',()=>{
+  $('accentToggle').classList.toggle('on')
+})
+
+// Play/Stop
+$('metroPlayBtn').addEventListener('click',metroStart)
+
+// Time sig / subdiv change
+$('timeSigSelect').addEventListener('change',()=>{
+  if(metroPlaying){metroStop();metroStart()}
+})
+$('subdivSelect').addEventListener('change',()=>{
+  if(metroPlaying){metroStop();metroStart()}
+})
+
+// Keyboard shortcut: Space
+document.addEventListener('keydown',e=>{
+  if(e.target.tagName==='INPUT'||e.target.tagName==='SELECT')return
+  if(e.code==='Space'){
+    e.preventDefault()
+    if($('panel-metronome').classList.contains('active'))metroStart()
+  }
+})
+
+// ====== Tab Switching ======
+document.querySelectorAll('.tab-btn').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'))
+    document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'))
+    btn.classList.add('active')
+    $('panel-'+btn.dataset.tab).classList.add('active')
+    // Stop the other feature
+    if(btn.dataset.tab==='tuner'){if(metroPlaying)metroStop()}
+    else{if(tunerActive)stopTuner()}
+  })
+})
+
+// Handle AudioContext resume on first interaction (iOS)
+document.addEventListener('touchstart',()=>{
+  if(!metroCtx)metroCtx=new AudioContext()
+  if(metroCtx.state==='suspended')metroCtx.resume()
+  if(!tunerCtx){/* will be created on demand */}
+},{once:true})
+document.addEventListener('click',()=>{
+  if(!metroCtx)metroCtx=new AudioContext()
+  if(metroCtx.state==='suspended')metroCtx.resume()
+},{once:true})
+
+console.log('🎵 调音器 & 节拍器已加载')
+</script>
+</body>
+</html>
