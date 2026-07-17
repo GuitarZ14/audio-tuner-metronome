@@ -33,29 +33,48 @@ body{display:flex;flex-direction:column;max-width:480px;margin:0 auto;touch-acti
 .tab-panel.active{display:flex}
 
 /* ===== Tuner ===== */
-.tuner-card{background:var(--surface);border-radius:var(--radius);border:1px solid var(--border);padding:32px 20px 20px;text-align:center}
-.tuner-top{display:flex;align-items:baseline;justify-content:center;gap:6px;margin-bottom:2px}
-.tuner-note{font-size:72px;font-weight:300;letter-spacing:1px;line-height:1}
-.tuner-octave{font-size:22px;font-weight:300;color:var(--text2)}
-.tuner-freq{font-size:13px;color:var(--text2);margin-bottom:20px}
-.tuner-msg{font-size:13px;color:var(--text2);margin-bottom:12px;min-height:18px}
-.gauge-wrap{position:relative;width:200px;height:100px;margin:0 auto 12px;overflow:hidden}
-.gauge-bg{position:absolute;inset:0;border-radius:100px 100px 0 0;background:linear-gradient(to right,var(--yellow),var(--green) 30%,var(--green) 70%,var(--yellow))}
-.gauge-track{position:absolute;inset:3px;border-radius:97px 97px 0 0;background:var(--surface)}
-.gauge-needle{position:absolute;bottom:0;left:50%;width:2px;height:85px;background:var(--text);transform-origin:bottom center;transform:translateX(-50%) rotate(0deg);transition:transform .08s ease;border-radius:1px;z-index:2}
-.gauge-center{position:absolute;bottom:2px;left:50%;transform:translateX(-50%);font-size:10px;color:var(--text2);z-index:1;letter-spacing:1px}
-.cents-label{margin-top:4px;font-size:14px;font-weight:400;min-height:20px}
+.tuner-card{background:var(--surface);border-radius:var(--radius);border:1px solid var(--border);padding:28px 20px 20px;text-align:center}
+.tuner-note{font-size:80px;font-weight:600;letter-spacing:2px;line-height:1;margin-bottom:2px;transition:color .15s}
+.tuner-note.in-tune{color:var(--green)}
+.tuner-meta{display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:16px}
+.tuner-octave{font-size:20px;font-weight:400;color:var(--text2)}
+.tuner-freq{font-size:14px;font-weight:500;color:var(--text2)}
+.tuner-freq strong{color:var(--text);font-weight:500}
+/* Horizontal gauge bar */
+.tuner-bar-wrap{position:relative;padding:4px 0 28px;margin:0 auto 12px;max-width:300px}
+.tuner-bar{position:relative;height:6px;border-radius:3px;background:linear-gradient(to right,var(--yellow),var(--green) 25%,var(--green) 75%,var(--yellow));opacity:.35}
+.tuner-bar-track{position:absolute;left:0;right:0;top:4px;height:6px;border-radius:3px;background:linear-gradient(to right,var(--yellow),var(--green) 25%,var(--green) 75%,var(--yellow))}
+.tuner-bar-needle{position:absolute;top:-8px;width:3px;height:22px;background:var(--text);border-radius:2px;left:50%;transition:left .06s ease;z-index:2;pointer-events:none}
+.tuner-bar-needle::after{content:'';position:absolute;top:-4px;left:50%;transform:translateX(-50%);width:0;height:0;border-left:5px solid transparent;border-right:5px solid transparent;border-bottom:5px solid var(--text)}
+.tuner-bar-marker{position:absolute;top:0;bottom:0;left:50%;width:1px;background:rgba(0,0,0,.15);transform:translateX(-50%);z-index:1}
+.tuner-bar-label{position:absolute;bottom:4px;font-size:11px;color:var(--text2);pointer-events:none}
+.tuner-bar-label.flat{left:6%}
+.tuner-bar-label.sharp{right:6%}
+.tuner-bar-label.center{left:50%;transform:translateX(-50%);font-size:12px;color:var(--green);font-weight:500}
+.cents-label{font-size:14px;font-weight:400;min-height:20px;margin-bottom:2px}
 .cents-label.flat{color:var(--yellow)}.cents-label.sharp{color:var(--yellow)}.cents-label.in-tune{color:var(--green)}
-.strings-row{display:flex;gap:6px;justify-content:center;flex-wrap:wrap}
-.string-dot{width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:500;background:#f0eeea;color:var(--text2);transition:.2s;border:1px solid var(--border)}
-.string-dot.active{background:var(--accent);color:#fff;border-color:var(--accent);transform:scale(1.1)}
-.string-dot.in-tune{background:var(--green);color:#fff;border-color:var(--green);transform:scale(1.05)}
-.tuner-selects{display:flex;gap:10px}
-.tuner-selects select{flex:1;padding:10px 12px;border:1px solid var(--border);border-radius:7px;background:var(--surface);color:var(--text);font-size:13px;cursor:pointer;-webkit-appearance:none;appearance:none;background-image:url("data:image/svg+xml,%3Csvg width='10' height='6' fill='%23999793'%3E%3Cpath d='M0 0l5 6 5-6z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center}
-.tuner-mic-status{font-size:12px;color:var(--text2);text-align:center;padding:6px;display:flex;align-items:center;justify-content:center;gap:6px}
+.tuner-msg{font-size:13px;color:var(--text2);min-height:18px;margin-bottom:4px}
+/* Instrument icons */
+.inst-row{display:flex;gap:8px;justify-content:center}
+.inst-btn{flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;padding:12px 8px 10px;border:1.5px solid var(--border);border-radius:var(--radius);background:var(--surface);cursor:pointer;transition:.2s;-webkit-tap-highlight-color:transparent}
+.inst-btn:active{transform:scale(.96)}
+.inst-btn.active{border-color:var(--text);background:var(--text)}
+.inst-btn.active .inst-label{color:#fff}
+.inst-btn.active svg *{stroke:#fff}
+.inst-btn svg{width:36px;height:48px}
+.inst-btn svg *{fill:none;stroke:var(--text2);stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
+.inst-label{font-size:12px;font-weight:500;color:var(--text2);transition:color .2s}
+.inst-tune{font-size:10px;color:var(--text2);margin-top:-2px}
+/* Mic status */
+.tuner-mic-status{font-size:12px;color:var(--text2);text-align:center;padding:4px;display:flex;align-items:center;justify-content:center;gap:6px}
 .mic-dot{width:8px;height:8px;border-radius:50%;background:var(--text2)}
 .mic-dot.active{background:var(--green);animation:pulse 1.5s ease-in-out infinite}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+
+@media(max-width:420px){
+  .tuner-note{font-size:60px}
+  .inst-btn svg{width:28px;height:38px}
+}
 
 /* ===== Metronome ===== */
 .metro-canvas-wrap{display:flex;justify-content:center;align-items:center;padding:0;position:relative;touch-action:none}
@@ -95,29 +114,45 @@ body{display:flex;flex-direction:column;max-width:480px;margin:0 auto;touch-acti
   <!-- ===== TUNER ===== -->
   <div class="tab-panel active" id="panel-tuner">
     <div class="tuner-card">
-      <div class="tuner-top">
-        <span class="tuner-note" id="noteDisplay">-</span>
+      <div class="tuner-note" id="noteDisplay">-</div>
+      <div class="tuner-meta">
         <span class="tuner-octave" id="octaveDisplay"></span>
+        <span class="tuner-freq" id="freqDisplay"><strong>—</strong> Hz</span>
       </div>
-      <div class="tuner-freq" id="freqDisplay">等待麦克风</div>
-      <div class="gauge-wrap">
-        <div class="gauge-bg"></div>
-        <div class="gauge-track"></div>
-        <div class="gauge-needle" id="gaugeNeedle"></div>
-        <div class="gauge-center">0¢</div>
+
+      <div class="tuner-bar-wrap">
+        <div class="tuner-bar" id="tunerBarBg"></div>
+        <div class="tuner-bar-track" id="tunerBarTrack">
+          <div class="tuner-bar-needle" id="barNeedle"></div>
+          <div class="tuner-bar-marker"></div>
+        </div>
+        <span class="tuner-bar-label flat">♭</span>
+        <span class="tuner-bar-label center" id="barCenterLabel">✓</span>
+        <span class="tuner-bar-label sharp">♯</span>
       </div>
+
       <div class="cents-label" id="centsLabel">&nbsp;</div>
       <div class="tuner-msg" id="tunerMsg">请允许麦克风权限</div>
     </div>
-    <div class="tuner-selects">
-      <select id="instrumentSelect">
-        <option value="guitar">吉他</option>
-        <option value="bass">贝斯</option>
-        <option value="ukulele">尤克里里</option>
-      </select>
-      <select id="tuningSelect"></select>
+
+    <div class="inst-row" id="instrumentRow">
+      <button class="inst-btn active" data-inst="guitar">
+        <svg viewBox="0 0 40 52"><path d="M22 4v14"/><path d="M18 4c-2 0-4 1-4 3v4c0 4 15 4 15 0V7c0-2-1-3-4-3h-7z"/><path d="M12 27c0-2 2-4 8-4s8 2 8 4"/><ellipse cx="20" cy="38" rx="12" ry="14"/><circle cx="20" cy="38" r="4"/><path d="M14 46c2 2 4 4 6 4s4-2 6-4"/><path d="M18 6l-6 24"/><path d="M22 6l6 24"/></svg>
+        <span class="inst-label">吉他</span>
+      </button>
+      <button class="inst-btn" data-inst="bass">
+        <svg viewBox="0 0 40 56"><path d="M22 2v16"/><path d="M18 2c-2 0-4 1-4 4v5c0 4 15 4 15 0V6c0-3-1-4-4-4h-7z"/><path d="M12 31c0-2 2-4 8-4s8 2 8 4"/><ellipse cx="20" cy="42" rx="13" ry="15"/><circle cx="20" cy="42" r="4"/><path d="M14 50c2 2 4 4 6 4s4-2 6-4"/><path d="M17 4l-5 27"/><path d="M23 4l5 27"/></svg>
+        <span class="inst-label">贝斯</span>
+      </button>
+      <button class="inst-btn" data-inst="ukulele">
+        <svg viewBox="0 0 36 40"><path d="M20 4v8"/><path d="M17 4c-1 0-3 1-3 2v3c0 3 12 3 12 0V6c0-1-1-2-3-2h-6z"/><ellipse cx="18" cy="27" rx="10" ry="11"/><circle cx="18" cy="27" r="3"/><path d="M16 35l4 3"/><path d="M16 4l-3 23"/><path d="M20 4l3 23"/></svg>
+        <span class="inst-label">尤克里里</span>
+      </button>
     </div>
-    <div class="strings-row" id="stringsRow"></div>
+
+    <div style="text-align:center;font-size:11px;color:var(--text2)" id="tuningLabel">标准 (E2 A2 D3 G3 B3 E4)</div>
+    <select id="tuningSelect" style="position:absolute;opacity:0;pointer-events:none;height:0;width:0"></select>
+
     <div class="tuner-mic-status">
       <span class="mic-dot" id="micDot"></span>
       <span id="micStatus">等待启动</span>
@@ -176,19 +211,34 @@ function parseNote(str){
   const midi=(o+1)*12+s,freq=440*Math.pow(2,(midi-69)/12);return{note:n,oct:o,midi,freq}
 }
 function populateTunings(){
-  const inst=$('instrumentSelect').value,sel=$('tuningSelect')
+  const inst=document.querySelector('.inst-btn.active')?.dataset.inst||'guitar',sel=$('tuningSelect')
   sel.innerHTML=''
   for(const[k,v]of Object.entries(TUNINGS[inst])){
-    const o=document.createElement('option');o.value=k;o.textContent=v.name+' ('+v.strings.join(' ')+')';sel.appendChild(o)
-  }updateStrings()
+    const o=document.createElement('option');o.value=k;o.textContent=v.name+(v.name.length<8?'':'')+' ('+v.strings.join(' ')+')';sel.appendChild(o)
+  }
+  updateTuningLabel()
 }
-function updateStrings(){
-  const inst=$('instrumentSelect').value,tuning=$('tuningSelect').value
-  const strings=TUNINGS[inst][tuning].strings,row=$('stringsRow');row.innerHTML=''
-  strings.forEach((s,i)=>{const d=document.createElement('div');d.className='string-dot';d.id='stringDot'+(i+1);d.textContent=s;row.appendChild(d)})
+function updateTuningLabel(){
+  const inst=document.querySelector('.inst-btn.active')?.dataset.inst||'guitar'
+  const tuning=$('tuningSelect').value
+  const info=TUNINGS[inst][tuning]
+  $('tuningLabel').textContent=info?info.name+' ('+info.strings.join(' ')+')':''
 }
-$('instrumentSelect').addEventListener('change',populateTunings)
-$('tuningSelect').addEventListener('change',updateStrings)
+// Instrument button switching
+document.querySelectorAll('.inst-btn').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    document.querySelectorAll('.inst-btn').forEach(b=>b.classList.remove('active'))
+    btn.classList.add('active')
+    populateTunings()
+    // Maintain tuning selection if possible
+    if(!TUNINGS[btn.dataset.inst][$('tuningSelect').value]){
+      // Fall back to first tuning
+      $('tuningSelect').selectedIndex=0
+    }
+    updateTuningLabel()
+  })
+})
+$('tuningSelect').addEventListener('change',updateTuningLabel)
 populateTunings()
 
 // ====== Tuner ======
@@ -223,10 +273,10 @@ function stopTuner(){
   tunerActive=false;if(tunerRaf){cancelAnimationFrame(tunerRaf);tunerRaf=null}
   if(tunerStream){tunerStream.getTracks().forEach(t=>t.stop());tunerStream=null}
   if(tunerCtx){tunerCtx.close();tunerCtx=null}
-  smoothedLogFreq=null;$('noteDisplay').textContent='-';$('octaveDisplay').textContent='';$('freqDisplay').textContent='— Hz'
+  smoothedLogFreq=null;$('noteDisplay').textContent='-';$('noteDisplay').className='tuner-note'
+  $('octaveDisplay').textContent='';$('freqDisplay').innerHTML='<strong>—</strong> Hz'
   $('centsLabel').textContent='';$('centsLabel').className='cents-label'
-  $('gaugeNeedle').style.transform='translateX(-50%) rotate(0deg)'
-  document.querySelectorAll('.string-dot').forEach(d=>{d.className='string-dot'})
+  $('barNeedle').style.left='50%'
 }
 function tunerLoop(){
   if(!tunerActive)return
@@ -244,18 +294,19 @@ function tunerLoop(){
       strings.forEach((s,i)=>{const p=parseNote(s);if(!p)return;const c=Math.abs(1200*Math.log2(freq/p.freq));if(c<bestCents){bestCents=c;bestStr=i}})
       if(bestCents<200){
         const p=parseNote(strings[bestStr]),deviation=1200*Math.log2(freq/p.freq),absCents=Math.abs(deviation)
-        $('noteDisplay').textContent=info.note;$('octaveDisplay').textContent=info.oct
-        $('freqDisplay').textContent=freq.toFixed(1)+' Hz'
+        $('noteDisplay').textContent=info.note+info.oct;$('noteDisplay').className='tuner-note'+(absCents<5?' in-tune':'')
+        $('freqDisplay').innerHTML='<strong>'+freq.toFixed(1)+'</strong> Hz'
         $('centsLabel').textContent=formatCents(deviation)
         $('centsLabel').className='cents-label'+(absCents<5?' in-tune':absCents<20?'':'')+(deviation>0&&absCents>=5?' sharp':deviation<0&&absCents>=5?' flat':'')
-        $('gaugeNeedle').style.transform='translateX(-50%) rotate('+Math.max(-60,Math.min(60,deviation/50*60))+'deg)'
-        document.querySelectorAll('.string-dot').forEach((d,i)=>{d.className='string-dot';if(i===bestStr){if(absCents<5)d.classList.add('in-tune');else d.classList.add('active')}})
+        // Horizontal bar needle: 0¢ = 50%, ±50¢ = 5% / 95%
+        const pct=50+Math.max(-45,Math.min(45,deviation/50*45))
+        $('barNeedle').style.left=pct+'%'
         $('tunerMsg').textContent='目标 '+strings[bestStr]+' '+(absCents<5?'✓ 准了':absCents<15?'接近':deviation>0?'↗ 偏高':'↙ 偏低')
-      }else{$('noteDisplay').textContent=info.note;$('octaveDisplay').textContent=info.oct;$('freqDisplay').textContent=freq.toFixed(1)+' Hz';$('centsLabel').textContent='';$('centsLabel').className='cents-label';$('gaugeNeedle').style.transform='translateX(-50%) rotate(0deg)';$('tunerMsg').textContent='继续弹奏...';document.querySelectorAll('.string-dot').forEach(d=>{d.className='string-dot'})}
+      }else{$('noteDisplay').textContent=info.note+info.oct;$('noteDisplay').className='tuner-note';$('freqDisplay').innerHTML='<strong>'+freq.toFixed(1)+'</strong> Hz';$('centsLabel').textContent='';$('centsLabel').className='cents-label';$('barNeedle').style.left='50%';$('tunerMsg').textContent='继续弹奏...'}
     }
   }else if(smoothedLogFreq!==null){
     smoothedLogFreq+=(Math.log2(55)-smoothedLogFreq)*0.05
-    if(Math.abs(smoothedLogFreq-Math.log2(55))<0.01){smoothedLogFreq=null;$('noteDisplay').textContent='-';$('octaveDisplay').textContent='';$('freqDisplay').textContent='— Hz';$('centsLabel').textContent='';$('centsLabel').className='cents-label';$('gaugeNeedle').style.transform='translateX(-50%) rotate(0deg)';document.querySelectorAll('.string-dot').forEach(d=>{d.className='string-dot'})}
+    if(Math.abs(smoothedLogFreq-Math.log2(55))<0.01){smoothedLogFreq=null;$('noteDisplay').textContent='-';$('noteDisplay').className='tuner-note';$('freqDisplay').innerHTML='<strong>—</strong> Hz';$('centsLabel').textContent='';$('centsLabel').className='cents-label';$('barNeedle').style.left='50%'}
   }
   tunerRaf=requestAnimationFrame(tunerLoop)
 }
