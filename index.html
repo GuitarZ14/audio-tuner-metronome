@@ -467,18 +467,25 @@ function pickVoice(){
 }
 try{speechSynthesis.addEventListener('voiceschanged',pickVoice);pickVoice()}catch(e){}
 
-function speakBeat(beatIndex,isAccent,time){
-  // time is AudioContext time — use setTimeout to approximate
-  const delayMs=Math.max(0,(time-(metroCtx?.currentTime||0))*1000)
-  setTimeout(()=>{
-    try{
-      const word=beatIndex<CN_NUMS.length?CN_NUMS[beatIndex]:String(beatIndex)
-      const utter=new SpeechSynthesisUtterance(word)
-      utter.lang='zh-CN';utter.rate=0.8;utter.pitch=1;utter.volume=isAccent?1:0.65
-      if(zhVoice)utter.voice=zhVoice
-      speechSynthesis.speak(utter)
-    }catch(e){}
-  },delayMs)
+function speakBeat(beatIndex,isAccent){
+  try{
+    const word=beatIndex<CN_NUMS.length?CN_NUMS[beatIndex]:String(beatIndex)
+    const utter=new SpeechSynthesisUtterance(word)
+    utter.lang='zh-CN';utter.rate=0.85;utter.pitch=1;utter.volume=isAccent?1:0.65
+    if(zhVoice)utter.voice=zhVoice
+    speechSynthesis.speak(utter)
+  }catch(e){}
+}
+// Sample‑accurate timing tick (very subtle, underneath the voice)
+function metroTick(time,isAccent){
+  if(!metroCtx)return
+  const osc=metroCtx.createOscillator(),gain=metroCtx.createGain()
+  osc.type='sine'
+  osc.frequency.setValueAtTime(isAccent?660:880,time)
+  gain.gain.setValueAtTime(isAccent?0.035:0.02,time)
+  gain.gain.exponentialRampToValueAtTime(0.001,time+0.005)
+  osc.connect(gain);gain.connect(metroCtx.destination)
+  osc.start(time);osc.stop(time+0.006)
 }
 // Subdivision — short soft tone (not a click) that complements voice
 function metroSubClick(time,bpm){
@@ -515,8 +522,9 @@ function metroScheduler(){
   const la=0.1,bl=60/metroBpm
   while(metroNextTime<metroCtx.currentTime+la){
     const isAccent=metroBeatIndex===0
-    // Voice on main beats; soft musical tones on subdivisions
-    speakBeat(metroBeatIndex+1,isAccent,metroNextTime)
+    // Precision timing tick + voice overlay on main beats
+    metroTick(metroNextTime,isAccent)
+    speakBeat(metroBeatIndex+1,isAccent)
     if(metroSubdiv>0){const n=metroSubdiv;for(let s=1;s<n;s++)metroSubClick(metroNextTime+s*bl/n,metroBpm)}
     metroBeatIndex++;metroNextTime+=bl
     if(metroBeatIndex>=metroBeatsPerBar)metroBeatIndex=0
