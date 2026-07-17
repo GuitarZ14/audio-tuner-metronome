@@ -455,48 +455,31 @@ canvas.addEventListener('mouseleave',()=>{rotaryAngle=null;rotaryAccum=0})
 document.querySelectorAll('#timeSigGroup .btn').forEach(b=>b.addEventListener('click',()=>setTimeSig(b.dataset.sig)))
 document.querySelectorAll('#subdivGroup .btn').forEach(b=>b.addEventListener('click',()=>setSubdiv(b.dataset.sub)))
 
-// Voice counting — use macOS higher‑quality voices
-const CN_NUMS=['零','一','二','三','四','五','六','七','八','九'];
-let zhVoice=null;
-function pickVoice(){
-  try{
-    const all=window.speechSynthesis?speechSynthesis.getVoices():[]
-    zhVoice=all.find(v=>/Tingting|Siri|Li\-?li|Yu\-?xiu|Mei\-?jia/i.test(v.name)&&v.lang.startsWith('zh'))
-         ||all.find(v=>v.lang.startsWith('zh'))
-  }catch(e){}
-}
-try{speechSynthesis.addEventListener('voiceschanged',pickVoice);pickVoice()}catch(e){}
+// Musical tone counting — sample‑accurate, replaces robotic TTS
+// Each beat gets a different pitch so you can "hear" which beat you're on
+// Beat 1 = C4 (downbeat anchor), 2 = D4, 3 = E4, 4 = F4, 5 = G4 …
+const BEAT_PITCHES=[262,294,330,349,392,440,494,523];
 
-function speakBeat(beatIndex,isAccent){
-  try{
-    const word=beatIndex<CN_NUMS.length?CN_NUMS[beatIndex]:String(beatIndex)
-    const utter=new SpeechSynthesisUtterance(word)
-    utter.lang='zh-CN';utter.rate=0.85;utter.pitch=1;utter.volume=isAccent?1:0.65
-    if(zhVoice)utter.voice=zhVoice
-    speechSynthesis.speak(utter)
-  }catch(e){}
-}
-// Sample‑accurate timing tick (very subtle, underneath the voice)
-function metroTick(time,isAccent){
+function metroNote(time,beatIndex,isAccent){
   if(!metroCtx)return
+  const freq=BEAT_PITCHES[beatIndex%BEAT_PITCHES.length]
   const osc=metroCtx.createOscillator(),gain=metroCtx.createGain()
-  osc.type='sine'
-  osc.frequency.setValueAtTime(isAccent?660:880,time)
-  gain.gain.setValueAtTime(isAccent?0.035:0.02,time)
-  gain.gain.exponentialRampToValueAtTime(0.001,time+0.005)
+  osc.type='triangle'  // warmer, rounder than sine
+  osc.frequency.setValueAtTime(freq,time)
+  const vol=isAccent?0.18:0.12
+  gain.gain.setValueAtTime(vol,time)
+  gain.gain.exponentialRampToValueAtTime(0.001,time+0.08)
   osc.connect(gain);gain.connect(metroCtx.destination)
-  osc.start(time);osc.stop(time+0.006)
+  osc.start(time);osc.stop(time+0.09)
 }
-// Subdivision — short soft tone (not a click) that complements voice
-function metroSubClick(time,bpm){
+// Subdivision — high, soft, short (doesn't compete with main beat)
+function metroSubClick(time){
   if(!metroCtx)return
-  const bl=60/bpm
   const osc=metroCtx.createOscillator(),gain=metroCtx.createGain()
   osc.type='sine'
-  // Higher pitch for faster subdivisions — musical & distinct from voice
-  osc.frequency.setValueAtTime(1200,time)
-  gain.gain.setValueAtTime(0.08,time);gain.gain.exponentialRampToValueAtTime(0.001,time+0.02)
-  osc.connect(gain);gain.connect(metroCtx.destination);osc.start(time);osc.stop(time+0.025)
+  osc.frequency.setValueAtTime(1047,time)  // C6 — distinct from main pitches
+  gain.gain.setValueAtTime(0.06,time);gain.gain.exponentialRampToValueAtTime(0.001,time+0.015)
+  osc.connect(gain);gain.connect(metroCtx.destination);osc.start(time);osc.stop(time+0.018)
 }
 
 // Metronome engine
@@ -519,23 +502,14 @@ function metroStop(){
 }
 function metroScheduler(){
   if(!metroPlaying||!metroCtx)return
-  const la=0.1,bl=60/metroBpm
+  const la=0.15,bl=60/metroBpm
   while(metroNextTime<metroCtx.currentTime+la){
     const isAccent=metroBeatIndex===0
-    // Precision timing tick + voice overlay on main beats
-    metroTick(metroNextTime,isAccent)
-    speakBeat(metroBeatIndex+1,isAccent)
-    if(metroSubdiv>0){const n=metroSubdiv;for(let s=1;s<n;s++)metroSubClick(metroNextTime+s*bl/n,metroBpm)}
+    metroNote(metroNextTime,metroBeatIndex,isAccent)
+    if(metroSubdiv>0){const n=metroSubdiv;for(let s=1;s<n;s++)metroSubClick(metroNextTime+s*bl/n)}
     metroBeatIndex++;metroNextTime+=bl
     if(metroBeatIndex>=metroBeatsPerBar)metroBeatIndex=0
   }
-}
-function metroClick(time,vol,freq){
-  if(!metroCtx)return
-  const osc=metroCtx.createOscillator(),gain=metroCtx.createGain()
-  osc.type='square';osc.frequency.setValueAtTime(freq||800,time)
-  gain.gain.setValueAtTime(vol*0.25,time);gain.gain.exponentialRampToValueAtTime(0.001,time+0.035)
-  osc.connect(gain);gain.connect(metroCtx.destination);osc.start(time);osc.stop(time+0.035)
 }
 function metroAnimLoop(ts){
   if(!metroPlaying||!metroCtx)return
