@@ -288,7 +288,7 @@ function tunerLoop(){
     if(smoothedLogFreq===null)smoothedLogFreq=logF;else smoothedLogFreq+=(logF-smoothedLogFreq)*0.3
     const freq=Math.pow(2,smoothedLogFreq),info=freqToNote(freq)
     if(info){
-      const inst=$('instrumentSelect').value,tuning=$('tuningSelect').value
+      const inst=document.querySelector('.inst-btn.active')?.dataset.inst||'guitar',tuning=$('tuningSelect').value
       const strings=TUNINGS[inst][tuning].strings
       let bestStr=null,bestCents=Infinity
       strings.forEach((s,i)=>{const p=parseNote(s);if(!p)return;const c=Math.abs(1200*Math.log2(freq/p.freq));if(c<bestCents){bestCents=c;bestStr=i}})
